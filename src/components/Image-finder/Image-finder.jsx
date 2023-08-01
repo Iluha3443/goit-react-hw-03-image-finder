@@ -1,5 +1,6 @@
 import React from "react";
-import Searchbar from '../Searchbar/Searchbar'
+import Searchbar from '../Searchbar/Searchbar';
+import ImageGallery from "../ImageGallery/ImageGallery";
 
 class ImageFinder extends React.Component  {
 
@@ -8,13 +9,15 @@ class ImageFinder extends React.Component  {
     };
 
     handleFormSubmit = searchName => {
-         this.setState({searchName})
-        
-    }
+        this.setState({ searchName })
+    };
     
     render() {
         return (
+            <>
             <Searchbar onSubmit={this.handleFormSubmit} />
+            <ImageGallery setSearch={this.state.searchName} />
+                </>
         )
     }
 

@@ -14,6 +14,9 @@ export default class Searchbar extends React.Component {
     
     handleSubmit = event => {
         event.preventDefault();
+        if (this.state.searchName.trim() === '') {
+            return
+        }
         this.props.onSubmit(this.state.searchName);
         this.setState({ searchName: '' });
     };
@@ -30,8 +33,8 @@ export default class Searchbar extends React.Component {
                     <input
                         className={css.input}
                         type="text"
-                        autocomplete="off"
-                        autofocus
+                        autoComplete="off"
+                        autoFocus
                         placeholder="Search images and photos"
                         onChange={this.handleNameChange}
                     />
