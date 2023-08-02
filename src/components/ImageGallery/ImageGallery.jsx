@@ -1,5 +1,4 @@
 import React from "react";
-import PropTypes from 'prop-types';
 import css from './ImageGallery.module.css';
 import axios from 'axios';
 import ImageGalleryItem from '../ImageGalleryItem/ImageGalleryItem';
