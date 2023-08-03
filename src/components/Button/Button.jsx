@@ -1,16 +1,18 @@
-import React from "react";
+import React from 'react';
 import PropTypes from 'prop-types';
-import css from '../Button/Button.module.css';
 
-const Button = ({Load}) => {
-
-    return (
-        <button onClick={() => Load()} className={css.Button}>Load more</button>
-    )
-}
-
-export default Button;
-
+const Button = ({ onClick, hasMore }) => {
+  return (
+    <div className='ContainerForBTNloadMore'>
+      <button type="button" className="Button" onClick={onClick} disabled={!hasMore}>
+      {hasMore ? 'Load more' : 'No more images'}
+      </button>
+    </div>
+    
+  );
+};
 Button.propTypes = {
-Load: PropTypes.func    
-}
+  onClick: PropTypes.func.isRequired,
+  hasMore: PropTypes.bool.isRequired,
+};
+export default Button;

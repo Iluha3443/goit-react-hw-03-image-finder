@@ -1,27 +1,20 @@
-import React from "react";
+import React from 'react';
 import PropTypes from 'prop-types';
-import css from './ImageGalleryItem.module.css';
 
+const ImageGalleryItem = ({ image, onOpenModal }) => {
+  const handleClick = () => {
+    onOpenModal(image.largeImageURL);
+  };
 
-const ImageGalleryItem = ({funcModal, webImg, largeImg }) => {
- 
-  
-   
   return (
-  
-    
-<li  className={css.galleryItem}>
-  <img className={css.image} onClick={() => funcModal(largeImg)} src={webImg} alt="Gallery Item"  />
-      </li>
-      
-     )
-     
-}
-
-export default ImageGalleryItem;
-
+    <li className="ImageGalleryItem" onClick={handleClick}>
+      <img src={image.webformatURL} alt=""  className="ImageGalleryItem-image"/>
+    </li>
+  );
+};
 ImageGalleryItem.propTypes = {
-  funcModal: PropTypes.func,
-  webImg: PropTypes.string,
-  largeImg: PropTypes.string
-}
+  image: PropTypes.shape({
+    webformatURL: PropTypes.string.isRequired,
+  }).isRequired,
+};
+export default ImageGalleryItem;

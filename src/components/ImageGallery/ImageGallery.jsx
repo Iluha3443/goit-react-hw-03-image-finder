@@ -1,80 +1,111 @@
-import React from "react";
-import css from './ImageGallery.module.css';
+import React, { Component } from 'react';
 import axios from 'axios';
 import ImageGalleryItem from '../ImageGalleryItem/ImageGalleryItem';
-import Button from "../Button/Button";
-import Loader from '../Loader/Loader'
-import Modal from '../Modal/Modal'
+import Loader from '../Loader/Loader';
+import Button from '../Button/Button';
+import { nanoid } from 'nanoid';
+import PropTypes  from 'prop-types';
 
-export default class ImageGallery extends React.Component {
+class ImageGallery extends Component {
+  state = {
+    images: [],
+    isLoading: false,
+    totalImages: 0,
+    currentPage: 1,
+    perPage: 12,
+  };
 
-    state = {
-        result: [],
-        page: 1,
-        loading: false,
-        isModal: false,
-        largeImg: ''
-    };
-
-    componentDidMount() {
-        window.addEventListener('keydown', this.handleKeyDown)
-    }
-
-    componentWillUnmount() {
-        window.removeEventListener('keydown', this.handleKeyDown)
-    }
-    
-    componentDidUpdate(prevProps, prevState) {
-        if (prevProps.setSearch !== this.props.setSearch) {
-            this.setState({loading: true, page: 1 , result:[]})
-        }
-    
-        if (prevProps.setSearch !== this.props.setSearch || prevState.page !== this.state.page) {
-            this.setState({loading: true})
-             axios.get(`https://pixabay.com/api/?q=${this.props.setSearch}&page=${this.state.page}&key=37292159-607e55aeb61a23e05d40a5fe8&image_type=photo&orientation=horizontal&per_page=12`)
-               .then(res => this.setState(prevState => ({ result: [...prevState.result, ...res.data.hits],loading: false })))    
-                .catch(error => console.log(error))
-        }
-    };
-
-    handleKeyDown = e => {
-     if (e.code === 'Escape') {
-                 this.setState({ isModal: false })
-            }
-    }
-
-    clickOnLoadMore = () => {
-        this.setState(prevState => ({
-            page: prevState.page + 1
-        }));
-    };
-
-    isOpenModal = (largeImg) => {
-        this.setState({ isModal: true, largeImg })
-    };
-
-    CloseModal = (e) => {
-        if (e.currentTarget === e.target) {
-             this.setState({ isModal: false })
-         }
-       
+  componentDidMount() {
+    this.fetchImages();
+    this.addScrollListener();
   }
 
-    render() {
-        const { result, loading, isModal, largeImg } = this.state;
-        return (
-            <>
-            <ul className={css.gallery}>
-                {loading && <Loader />} 
-                {result.map(obj => (  
-                    <ImageGalleryItem funcModal={this.isOpenModal} openModal={isModal} key={obj.id} webImg={obj.webformatURL} largeImg={obj.largeImageURL} />
-                ))}
-               
-                    
-                    { isModal && <Modal statusModal={this.CloseModal} largeImg={largeImg} />}
-                </ul>
-                {result.length > 0 && <Button Load={this.clickOnLoadMore} />}
-                </>
-        );
+ componentDidUpdate(prevProps) {
+    if (prevProps.query !== this.props.query) {
+      this.setState({ images: [], isLoading: false, currentPage: 1 }, () => {
+        this.fetchImages();
+      });
     }
+  }
+  componentWillUnmount() {
+    this.removeScrollListener();
+  }
+
+  addScrollListener = () => {
+    window.addEventListener('load', this.handleScroll);
+  };
+
+  removeScrollListener = () => {
+    window.removeEventListener('load', this.handleScroll);
+  };
+
+  handleScroll = () => {
+    const { isLoading, images, totalImages} = this.state;
+    if (!isLoading && images.length < totalImages) {
+      const { innerHeight } = window;
+      const { scrollHeight, scrollTop } = document.documentElement;
+      const scrolledToBottom = innerHeight + scrollTop >= scrollHeight;
+
+      if (scrolledToBottom) {
+        this.fetchImages();
+      }
+    }
+  };
+
+  fetchImages = () => {
+    const { query } = this.props;
+    const { currentPage, perPage } = this.state;
+    const apiKey = '37446225-ced4f53dd81a7d760f8a029fd';
+    const url = `https://pixabay.com/api/?q=${query}&page=${currentPage}&key=${apiKey}&image_type=photo&orientation=horizontal&per_page=${perPage}`;
+
+    this.setState({ isLoading: true });
+
+    axios
+      .get(url)
+      .then(response => {
+        const newImages = response.data.hits.map(image => ({
+          ...image,
+          id: nanoid(),
+        }));
+
+        this.setState(prevState => ({
+          images: [...prevState.images, ...newImages],
+          isLoading: false,
+          totalImages: response.data.total,
+          currentPage: prevState.currentPage + 1,
+        }));
+      })
+      .catch(error => {
+        console.error('Error fetching images:', error);
+        this.setState({ isLoading: false });
+      });
+  };
+
+  render() {
+    const { images, isLoading, totalImages } = this.state;
+
+    return (
+      <div>
+        <ul className="ImageGallery">
+          {images.map(image => (
+            <ImageGalleryItem key={image.id} image={image} onOpenModal={this.props.onOpenModal} />
+          ))}
+        </ul>
+        {isLoading && <Loader />}
+        {images.length > 0 && images.length < totalImages && (
+          <Button onClick={this.fetchImages} hasMore={!isLoading} />
+        )}
+      </div>
+    );
+  }
 }
+
+ImageGallery.propTypes = {
+  query: PropTypes.string.isRequired,
+  page: PropTypes.number.isRequired,
+  perPage: PropTypes.number.isRequired,
+  onLoadMore: PropTypes.func.isRequired,
+  onOpenModal: PropTypes.func.isRequired,
+};
+
+export default ImageGallery;
